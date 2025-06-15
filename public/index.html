@@ -12,6 +12,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
 
     <!-- Estilos CSS customizados para o tema Dark Blue (Light) -->
     <style>
@@ -93,6 +98,37 @@
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px #1e293b, 0 0 0 4px #3b82f6;
+        }
+        /* Custom radio style */
+        input[type="radio"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: #334155;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #475569;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            margin-right: 0.25rem;
+        }
+
+        input[type="radio"]:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        input[type="radio"]:checked::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: white;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
         }
 
         /* Estilo para o Range Slider */
@@ -402,21 +438,50 @@
                                 <input type="file" id="insumo-imagem" class="hidden" accept="image/*">
                                 <span class="text-sm text-blue-400 mt-1 block">Clique para enviar uma foto</span>
                             </label>
-                            <input type="text" id="insumo-nome" placeholder="Nome do insumo" class="w-full p-2 border rounded-md mb-2" required>
-                            <textarea id="insumo-desc" placeholder="Descrição (opcional)" class="w-full p-2 border rounded-md mb-2 h-20"></textarea>
-                            <input type="number" id="insumo-preco" step="0.01" placeholder="Preço Unitário (R$)" class="w-full p-2 border rounded-md mb-2" required>
-                            <input type="number" id="insumo-estoque" step="0.001" placeholder="Qtd. em estoque" class="w-full p-2 border rounded-md mb-2" required>
-                            <label class="block text-sm mb-1 mt-2">Unidade de Medida</label>
-                            <select id="insumo-unidade" class="w-full p-2 border rounded-md mb-4" required>
-                                <option value="un">Unidade (un)</option>
-                                <option value="kg">Quilograma (kg)</option>
-                                <option value="g">Grama (g)</option>
-                                <option value="L">Litro (L)</option>
-                                <option value="mL">Mililitro (mL)</option>
-                                <option value="m">Metro (m)</option>
-                                <option value="cm">Centímetro (cm)</option>
-                            </select>
-                            <button type="submit" class="w-full bg-white text-black p-2.5 rounded-md font-semibold hover:bg-gray-200 transition-all">Salvar Insumo</button>
+                            <input type="text" id="insumo-nome" placeholder="Nome do insumo (ex: Roletê)" class="w-full p-2 border rounded-md mb-2" required>
+                            <textarea id="insumo-desc" placeholder="Descrição (opcional)" class="w-full p-2 border rounded-md mb-4 h-20"></textarea>
+                            
+                            <div class="flex items-center gap-2 mb-4">
+                               <input type="checkbox" id="insumo-com-variacoes" class="custom-checkbox">
+                               <label for="insumo-com-variacoes" class="text-sm">Cadastrar com variações (ex: cores)</label>
+                            </div>
+
+                            <div id="insumo-single-fields" class="space-y-2">
+                                <input type="number" id="insumo-preco-single" step="0.01" placeholder="Preço Unitário (R$)" class="w-full p-2 border rounded-md">
+                                <input type="number" id="insumo-estoque-single" step="0.001" placeholder="Qtd. em estoque" class="w-full p-2 border rounded-md">
+                                <label class="block text-sm mb-1 mt-2">Unidade de Medida</label>
+                                <select id="insumo-unidade-single" class="w-full p-2 border rounded-md">
+                                    <option value="un">Unidade (un)</option>
+                                    <option value="kg">Quilograma (kg)</option>
+                                    <option value="g">Grama (g)</option>
+                                    <option value="L">Litro (L)</option>
+                                    <option value="mL">Mililitro (mL)</option>
+                                    <option value="m">Metro (m)</option>
+                                    <option value="cm">Centímetro (cm)</option>
+                                </select>
+                            </div>
+
+                            <div id="insumo-variations-container" class="hidden space-y-4">
+                                 <div id="insumo-variations-list" class="space-y-2 max-h-40 overflow-y-auto p-2 border border-[#334155] rounded-md bg-[#1e293b]"></div>
+                                 <div class="p-4 border border-dashed border-slate-600 rounded-lg">
+                                    <h4 class="font-semibold mb-2">Adicionar Variação</h4>
+                                    <input type="text" id="variation-nome" placeholder="Nome da Variação (ex: Preto)" class="w-full p-2 border rounded-md mb-2">
+                                    <input type="number" id="variation-preco" step="0.01" placeholder="Preço" class="w-full p-2 border rounded-md mb-2">
+                                    <input type="number" id="variation-estoque" step="0.001" placeholder="Estoque" class="w-full p-2 border rounded-md mb-2">
+                                    <select id="variation-unidade" class="w-full p-2 border rounded-md mb-2">
+                                        <option value="un">Unidade (un)</option>
+                                        <option value="kg">Quilograma (kg)</option>
+                                        <option value="g">Grama (g)</option>
+                                        <option value="L">Litro (L)</option>
+                                        <option value="mL">Mililitro (mL)</option>
+                                        <option value="m">Metro (m)</option>
+                                        <option value="cm">Centímetro (cm)</option>
+                                    </select>
+                                    <button type="button" id="btn-add-variation" class="w-full bg-slate-600 text-white p-2 rounded-md font-semibold hover:bg-slate-500">Adicionar Variação</button>
+                                 </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-white text-black p-2.5 rounded-md font-semibold hover:bg-gray-200 transition-all mt-6">Salvar Insumo</button>
                              <button id="btn-cancelar-insumo" type="button" class="md:hidden mt-2 w-full bg-slate-600 text-white p-2.5 rounded-md font-semibold hover:bg-slate-500">Cancelar</button>
                         </form>
                     </div>
@@ -479,7 +544,11 @@
                                 <input type="text" id="produto-nome" placeholder="Nome do produto" class="w-full p-2 border rounded-md mb-2" required>
                                 <textarea id="produto-desc" placeholder="Descrição do produto" class="w-full p-2 border rounded-md mb-4 h-20"></textarea>
                                 
-                                <h4 class="font-semibold text-white mt-4 mb-2">Insumos de Produção</h4>
+                                <div class="flex justify-between items-center mt-4">
+                                     <h4 class="font-semibold text-white">Insumos de Produção</h4>
+                                     <button type="button" id="btn-abrir-calculadora-diluicao" class="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700">Diluir Custo</button>
+                                </div>
+
                                 <div id="produto-insumos-lista" class="space-y-2 my-2 max-h-40 overflow-y-auto p-2 border border-[#334155] rounded-md bg-[#1e293b]"></div>
                                 <div class="flex gap-2">
                                    <select id="select-insumo-para-produto" class="w-full p-2 border rounded-md"></select>
@@ -544,39 +613,44 @@
                 <h1 class="text-3xl font-bold mb-6 text-white hidden md:block">Registro de Produção</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-1 bg-[#0f172a] border border-[#334155] p-6 rounded-xl h-fit">
-                        <h2 class="text-xl font-semibold mb-4 text-white">Registrar Nova Produção</h2>
-                        <form id="form-producao">
-                            <label class="block text-sm mb-1">Selecione o Produto</label>
-                            <select id="select-produto-producao" class="w-full p-2 border rounded-md mb-4" required></select>
-                            <label class="block text-sm mb-1">Quantidade a Produzir</label>
-                            <input type="number" id="qtd-produzida" placeholder="Qtd." class="w-full p-2 border rounded-md mb-4" required>
-                            <button type="submit" class="w-full bg-white text-black p-2.5 rounded-md font-semibold hover:bg-gray-200 transition-all">Registrar Produção</button>
-                        </form>
-                        <div class="mt-6">
-                            <h3 class="font-semibold mb-2 text-white">Análise de Insumos para Produção</h3>
-                            <div id="producao-necessidades" class="space-y-2 max-h-48 overflow-y-auto p-2 border border-[#334155] rounded-md bg-[#1e293b]">
-                                <p class="text-slate-400 text-sm">Selecione um produto e a quantidade.</p>
-                            </div>
+                        <h2 class="text-xl font-semibold mb-4 text-white">Montar Lote de Produção</h2>
+                        <div id="form-add-produto-producao" class="space-y-2">
+                             <label class="block text-sm">Produto</label>
+                             <select id="select-produto-para-adicionar" class="w-full p-2 border rounded-md"></select>
+                             <label class="block text-sm mt-2">Quantidade</label>
+                             <input type="number" id="qtd-produto-para-adicionar" placeholder="Qtd." class="w-full p-2 border rounded-md">
+                             <button type="button" id="btn-add-produto-producao" class="w-full mt-2 bg-blue-600 text-white p-2.5 rounded-md font-semibold hover:bg-blue-700 transition-all">Adicionar Produto ao Lote</button>
                         </div>
+                         <h3 class="text-lg font-semibold text-white mt-6 mb-2">Produtos no Lote</h3>
+                         <div id="lista-produtos-producao" class="space-y-2">
+                             <p class="text-slate-400 text-sm">Nenhum produto adicionado ao lote.</p>
+                         </div>
+                         <button id="btn-registrar-producao" class="w-full mt-4 bg-white text-black p-2.5 rounded-md font-semibold hover:bg-gray-200 transition-all">Registrar Produção do Lote</button>
                     </div>
                      <div class="lg:col-span-2 bg-[#0f172a] border border-[#334155] p-6 rounded-xl">
-                        <div class="flex justify-between items-center mb-4">
-                             <h2 class="text-xl font-semibold text-white">Histórico de Produção</h2>
-                             <button id="exportar-relatorio-producao" class="bg-blue-600 text-white p-2 rounded-md font-semibold text-sm hover:bg-blue-700 transition-all">Exportar Relatório</button>
+                        <div class="flex flex-wrap gap-4 justify-between items-center mb-4">
+                             <h2 class="text-xl font-semibold text-white">Análise de Insumos para o Lote</h2>
+                             <button id="gerar-ordem-compra-pdf" class="bg-blue-600 text-white p-2 rounded-md font-semibold text-sm hover:bg-blue-700 transition-all">Gerar Ordem de Compra (PDF)</button>
                         </div>
-                        <div class="max-h-[60vh] overflow-y-auto">
-                            <table class="w-full text-left responsive-table">
-                                <thead>
-                                    <tr>
-                                        <th class="p-2">Data</th>
-                                        <th class="p-2">Produto</th>
-                                        <th class="p-2">Qtd.</th>
-                                        <th class="p-2">Custo Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="lista-producao"></tbody>
-                            </table>
+                        <div id="producao-necessidades" class="space-y-3 max-h-[60vh] overflow-y-auto">
+                            <p class="text-slate-400 text-sm">Adicione produtos ao lote para ver a análise.</p>
                         </div>
+                    </div>
+                </div>
+                <div class="mt-6 bg-[#0f172a] border border-[#334155] p-6 rounded-xl">
+                     <h2 class="text-xl font-semibold mb-4 text-white">Histórico de Produção</h2>
+                    <div class="max-h-[60vh] overflow-y-auto">
+                        <table class="w-full text-left responsive-table">
+                            <thead>
+                                <tr>
+                                    <th class="p-2">Data</th>
+                                    <th class="p-2">Produtos</th>
+                                    <th class="p-2">Qtd. Total</th>
+                                    <th class="p-2">Custo Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-producao"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -668,13 +742,13 @@
         <div class="bg-[#0f172a] border border-[#334155] p-8 rounded-lg shadow-xl max-w-md w-full">
             <h2 id="calculadora-titulo" class="text-xl font-bold mb-6 text-white"></h2>
             <div class="space-y-4">
+                 <div>
+                    <label class="text-sm">Nome do Custo Diluído</label>
+                    <input type="text" id="calc-nome-item" placeholder="Ex: Uso de Cola PVC" class="w-full p-2 border rounded-md mt-1">
+                </div>
                 <div>
                     <label class="text-sm">Custo Total do Pacote/Item</label>
                     <input type="number" step="0.01" id="calc-custo-total" placeholder="R$ 74,00" class="w-full p-2 border rounded-md mt-1">
-                </div>
-                <div>
-                    <label class="text-sm">Quantidade Total do Pacote</label>
-                    <input type="number" step="0.001" id="calc-qtd-total" placeholder="2.3" class="w-full p-2 border rounded-md mt-1">
                 </div>
                 <div>
                     <label class="text-sm">Rendimento Total (quantos itens você faz)</label>
@@ -682,12 +756,12 @@
                 </div>
             </div>
             <div class="mt-6 p-4 bg-[#1e293b] rounded-md border border-[#334155] space-y-2">
-                <h3 class="font-semibold text-white">Resultados por Unidade Produzida:</h3>
+                <h3 class="font-semibold text-white">Resultado por Unidade Produzida:</h3>
                 <p class="text-sm">Custo por unidade: <span id="calc-resultado-custo-un" class="font-bold text-green-400">R$ 0,00</span></p>
-                <p class="text-sm">Qtd. de insumo por unidade: <span id="calc-resultado-qtd-un" class="font-bold text-blue-400">0</span></p>
             </div>
-            <div class="mt-6 flex justify-end">
-                <button id="modal-calculadora-fechar" class="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500">Fechar</button>
+            <div class="mt-6 flex justify-between">
+                <button id="modal-calculadora-fechar" class="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500">Cancelar</button>
+                <button id="modal-calculadora-adicionar" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Adicionar Custo ao Produto</button>
             </div>
         </div>
     </div>
@@ -737,7 +811,7 @@
                 { id: 'insumo5', nome: 'Roletê Macarrão', desc: 'Roletê com formato de macarrão.', preco: 2.00, estoque: 150, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Roletê' },
                 { id: 'insumo6', nome: 'Passante Fino', desc: 'Passante delicado para acabamentos.', preco: 0.50, estoque: 500, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Passante' },
                 { id: 'insumo7', nome: 'Passante Grosso', desc: 'Passante resistente para estruturas.', preco: 0.60, estoque: 400, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Passante' },
-                { id: 'insumo8', nome: 'Cola PVC', desc: 'Cola para PVC, preço por grama.', preco: 0.032, estoque: 2300, unidade: 'g', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Cola' },
+                { id: 'insumo8', nome: 'Cola PVC', desc: 'Galão com 2.3kg.', preco: 74, estoque: 2300, unidade: 'g', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Cola' },
                 { id: 'insumo9', nome: 'Strass Fino', desc: 'Metro de strass fino para decoração.', preco: 3.50, estoque: 50, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Strass' },
                 { id: 'insumo10', nome: 'Strass Grosso', desc: 'Metro de strass robusto para destaque.', preco: 5.50, estoque: 50, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Strass' },
                 { id: 'insumo11', nome: 'Mangueirinha', desc: 'Metro de mangueirinha para detalhes.', preco: 4.00, estoque: 100, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Mangueira' }
@@ -854,7 +928,7 @@
         const getCustoInsumosProduto = (insumosList = []) => {
             return insumosList.reduce((acc, item) => {
                 const insumo = state.insumos.find(i => i.id === item.insumoId);
-                const precoUnitarioInsumo = insumo ? insumo.preco : 0;
+                const precoUnitarioInsumo = insumo ? insumo.preco : (item.preco || 0); // Use item.preco for diluted costs
                 return acc + (precoUnitarioInsumo * item.quantidade);
             }, 0);
         };
@@ -889,7 +963,8 @@
             const custoFixoUnit = getCustoFixoUnitario();
             const custoMaoDeObra = getCustoMaoDeObraUnitario();
             const custoVenda = getCustoPorVendaTotal();
-            return custoInsumos + custoFixoUnit + custoMaoDeObra + custoVenda;
+            const custoAdicional = (produto.custosAdicionais || []).reduce((acc, item) => acc + item.valor, 0);
+            return custoInsumos + custoFixoUnit + custoMaoDeObra + custoVenda + custoAdicional;
         };
 
         const getPrecoFinalProduto = (produto) => {
@@ -911,27 +986,31 @@
              inicioMes.setDate(1);
              inicioMes.setHours(0,0,0,0);
              const producaoMes = state.producao.filter(p => new Date(p.data) >= inicioMes);
-             document.getElementById('dashboard-producao-mes').textContent = `${producaoMes.reduce((acc, p) => acc + p.quantidade, 0)} unidades`;
+             document.getElementById('dashboard-producao-mes').textContent = `${producaoMes.reduce((acc, p) => acc + p.produtos.reduce((sum, item) => sum + item.quantidade, 0), 0)} unidades`;
              
              const receitaEstimada = producaoMes.reduce((acc, reg) => {
-                const produto = state.produtos.find(p => p.id === reg.produtoId);
-                if (produto) {
-                    const precoVenda = getPrecoFinalProduto(produto);
-                    return acc + (precoVenda * reg.quantidade);
-                }
-                return acc;
+                 return acc + reg.produtos.reduce((sum, item) => {
+                    const produto = state.produtos.find(p => p.id === item.produtoId);
+                    if (produto) {
+                        const precoVenda = getPrecoFinalProduto(produto);
+                        return sum + (precoVenda * item.quantidade);
+                    }
+                    return sum;
+                 }, 0);
              }, 0);
              document.getElementById('dashboard-receita-estimada').textContent = formatCurrency(receitaEstimada);
 
              const custoProducaoMes = producaoMes.reduce((acc, reg) => acc + reg.custoTotal, 0);
              const despesasPercentuaisMes = producaoMes.reduce((acc, reg) => {
-                 const produto = state.produtos.find(p => p.id === reg.produtoId);
-                 if (produto) {
-                     const precoVenda = getPrecoFinalProduto(produto);
-                     const totalPercentual = (produto.percentuais || []).reduce((sum, p) => sum + p.valor, 0);
-                     return acc + (precoVenda * (totalPercentual / 100));
-                 }
-                 return acc;
+                return acc + reg.produtos.reduce((sum, item) => {
+                     const produto = state.produtos.find(p => p.id === item.produtoId);
+                     if (produto) {
+                         const precoVenda = getPrecoFinalProduto(produto);
+                         const totalPercentual = (produto.percentuais || []).reduce((s, p) => s + p.valor, 0);
+                         return sum + (precoVenda * (totalPercentual / 100) * item.quantidade);
+                     }
+                     return sum;
+                }, 0);
              }, 0);
 
              document.getElementById('dashboard-lucro-estimado').textContent = formatCurrency(receitaEstimada - custoProducaoMes - despesasPercentuaisMes);
@@ -952,8 +1031,8 @@
             const maisProduzidosContainer = document.getElementById('dashboard-mais-produzidos');
             maisProduzidosContainer.innerHTML = '';
             if (state.producao.length > 0) {
-                const contagem = state.producao.reduce((acc, reg) => {
-                    acc[reg.produtoId] = (acc[reg.produtoId] || 0) + reg.quantidade;
+                const contagem = state.producao.flatMap(p => p.produtos).reduce((acc, item) => {
+                    acc[item.produtoId] = (acc[item.produtoId] || 0) + item.quantidade;
                     return acc;
                 }, {});
                 const sorted = Object.entries(contagem).sort(([,a],[,b]) => b-a).slice(0, 5);
@@ -1038,10 +1117,11 @@
             state.insumos.forEach(insumo => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-[#334155] align-middle';
+                const precoUnit = insumo.preco;
                 tr.innerHTML = `
                     <td data-label="Foto"><img src="${insumo.imagem}" alt="[Foto do insumo ${insumo.nome}]" class="w-10 h-10 rounded-md object-cover"></td>
                     <td data-label="Nome">${insumo.nome}</td>
-                    <td data-label="Preço Unit.">${formatCurrency(insumo.preco)} / ${insumo.unidade}</td>
+                    <td data-label="Preço Unit.">${formatCurrency(precoUnit)} / ${insumo.unidade}</td>
                     <td data-label="Estoque">${insumo.estoque} ${insumo.unidade}</td>
                     <td data-label="Ações" class="flex gap-2 items-center"><button data-edit-id="${insumo.id}" class="text-blue-400 hover:text-blue-300">Editar</button>
                     <button data-delete-id="${insumo.id}" class="text-red-400 hover:text-red-300">Excluir</button></td>`;
@@ -1132,11 +1212,13 @@
 
             // Mais Rentável
             const lucros = state.producao.reduce((acc, reg) => {
-                const produto = state.produtos.find(p => p.id === reg.produtoId);
-                if (produto) {
-                    const lucroPorUnidade = getPrecoFinalProduto(produto) - getCustoTotalUnitario(produto);
-                    acc[produto.id] = (acc[produto.id] || 0) + (lucroPorUnidade * reg.quantidade);
-                }
+                reg.produtos.forEach(item => {
+                    const produto = state.produtos.find(p => p.id === item.produtoId);
+                    if (produto) {
+                        const lucroPorUnidade = getPrecoFinalProduto(produto) - getCustoTotalUnitario(produto);
+                        acc[produto.id] = (acc[produto.id] || 0) + (lucroPorUnidade * item.quantidade);
+                    }
+                });
                 return acc;
             }, {});
 
@@ -1153,13 +1235,17 @@
              const lista = document.getElementById('lista-producao');
              lista.innerHTML = state.producao.length === 0 ? `<tr><td colspan="4" class="p-4 text-center text-slate-400">Nenhum registro de produção.</td></tr>` : '';
              [...state.producao].sort((a,b) => new Date(b.data) - new Date(a.data)).forEach(reg => {
-                const produto = state.produtos.find(p => p.id === reg.produtoId);
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-[#334155]';
-                const custoRealDaProducao = produto ? getCustoTotalUnitario(produto) * reg.quantidade : 0;
+                const produtosNomes = reg.produtos.map(p => {
+                    const prodData = state.produtos.find(prod => prod.id === p.produtoId);
+                    return `${prodData ? prodData.nome : 'N/A'} (${p.quantidade})`;
+                }).join(', ');
+                const totalQuantidade = reg.produtos.reduce((sum, p) => sum + p.quantidade, 0);
+
                 tr.innerHTML = `<td data-label="Data">${new Date(reg.data).toLocaleDateString('pt-BR')}</td>
-                    <td data-label="Produto">${produto ? produto.nome : 'Produto não encontrado'}</td>
-                    <td data-label="Qtd.">${reg.quantidade}</td><td data-label="Custo Total">${formatCurrency(custoRealDaProducao)}</td>`;
+                    <td data-label="Produtos">${produtosNomes}</td>
+                    <td data-label="Qtd. Total">${totalQuantidade}</td><td data-label="Custo Total">${formatCurrency(reg.custoTotal)}</td>`;
                 lista.appendChild(tr);
              });
         };
@@ -1234,18 +1320,27 @@
             const container = document.getElementById('produto-insumos-lista');
             container.innerHTML = (currentProdutoInsumos.length === 0) ? '<p class="text-slate-400 text-sm">Nenhum insumo de produção.</p>' : '';
             currentProdutoInsumos.forEach(item => {
-                const insumoData = state.insumos.find(i => i.id === item.insumoId);
-                if (insumoData) {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center text-sm bg-slate-900 p-1.5 rounded';
-                    div.innerHTML = `<span>${insumoData.nome} (${item.quantidade} ${insumoData.unidade})</span>
-                        <button type="button" data-id="${item.insumoId}" class="text-red-400 font-bold px-2">&times;</button>`;
-                    container.appendChild(div);
+                let nome = 'Custo Diluído';
+                let unidade = '';
+                if(item.insumoId) {
+                    const insumoData = state.insumos.find(i => i.id === item.insumoId);
+                    if(insumoData) {
+                        nome = insumoData.nome;
+                        unidade = insumoData.unidade;
+                    }
+                } else {
+                    nome = item.nome;
                 }
+                
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center text-sm bg-slate-900 p-1.5 rounded';
+                div.innerHTML = `<span>${nome} (${item.quantidade} ${unidade})</span>
+                    <button type="button" data-id="${item.id}" class="text-red-400 font-bold px-2">&times;</button>`;
+                container.appendChild(div);
             });
             container.querySelectorAll('button').forEach(btn => {
                 btn.onclick = e => {
-                    currentProdutoInsumos = currentProdutoInsumos.filter(i => i.insumoId !== e.currentTarget.dataset.id);
+                    currentProdutoInsumos = currentProdutoInsumos.filter(i => i.id !== e.currentTarget.dataset.id);
                     renderProdutoInsumosList(); calculateProdutoPrecoFinal();
                 };
             });
@@ -1268,42 +1363,81 @@
                 };
             });
         }
+        
+        let currentProducaoItems = [];
+
+        const renderProducaoItemsList = () => {
+            const container = document.getElementById('lista-produtos-producao');
+            container.innerHTML = '';
+            if (currentProducaoItems.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-sm">Nenhum produto adicionado ao lote.</p>`;
+            } else {
+                currentProducaoItems.forEach(item => {
+                    const produto = state.produtos.find(p => p.id === item.produtoId);
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center bg-slate-900 p-2 rounded-md text-sm';
+                    div.innerHTML = `
+                        <span>${produto.nome}</span>
+                        <div class="flex items-center gap-2">
+                            <span>Qtd: ${item.quantidade}</span>
+                            <button data-id="${item.produtoId}" class="text-red-400 hover:text-red-300 font-bold">&times;</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.querySelectorAll('button').forEach(btn => {
+                    btn.onclick = (e) => {
+                        const idToRemove = e.currentTarget.dataset.id;
+                        currentProducaoItems = currentProducaoItems.filter(p => p.produtoId !== idToRemove);
+                        renderProducaoItemsList();
+                        updateProducaoNecessidades();
+                    }
+                });
+            }
+        };
 
         const updateProducaoNecessidades = () => {
             const container = document.getElementById('producao-necessidades');
-            const produtoId = document.getElementById('select-produto-producao').value;
-            const quantidade = parseFloat(document.getElementById('qtd-produzida').value);
             container.innerHTML = '';
 
-            if (!produtoId || !quantidade || quantidade <= 0) {
-                container.innerHTML = '<p class="text-slate-400 text-sm">Selecione um produto e a quantidade.</p>';
+            if (currentProducaoItems.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-sm">Adicione produtos ao lote para ver a análise.</p>';
                 return;
             }
 
-            const produto = state.produtos.find(p => p.id === produtoId);
-            if (!produto) return;
-
-            if (produto.insumos.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-sm">Este produto não possui insumos cadastrados.</p>';
-                return;
-            }
-
-            produto.insumos.forEach(item => {
-                const insumoData = state.insumos.find(i => i.id === item.insumoId);
-                if (insumoData) {
-                    const necessario = item.quantidade * quantidade;
-                    const disponivel = insumoData.estoque;
-                    const statusOk = disponivel >= necessario;
-                    const div = document.createElement('div');
-                    div.className = `p-2 rounded-md text-sm ${statusOk ? 'bg-green-900/50' : 'bg-red-900/50'}`;
-                    div.innerHTML = `<div class="font-bold">${insumoData.nome}</div>
-                        <div>Necessário: ${necessario.toFixed(3)} ${insumoData.unidade}</div>
-                        <div>Disponível: ${disponivel.toFixed(3)} ${insumoData.unidade}</div>
-                        <div class="font-bold mt-1 ${statusOk ? 'text-green-400' : 'text-red-400'}">
-                            ${statusOk ? 'ESTOQUE OK' : `FALTAM ${(necessario - disponivel).toFixed(3)} ${insumoData.unidade}`}
-                        </div>`;
-                    container.appendChild(div);
+            const necessidadesAgregadas = currentProducaoItems.reduce((acc, item) => {
+                const produto = state.produtos.find(p => p.id === item.produtoId);
+                if (produto && produto.insumos) {
+                    produto.insumos.forEach(insumoProd => {
+                        const insumoData = state.insumos.find(i => i.id === insumoProd.insumoId);
+                        if(insumoData) {
+                            const necessario = insumoProd.quantidade * item.quantidade;
+                            if (acc[insumoData.id]) {
+                                acc[insumoData.id].necessario += necessario;
+                            } else {
+                                acc[insumoData.id] = { ...insumoData, necessario };
+                            }
+                        }
+                    });
                 }
+                return acc;
+            }, {});
+
+            Object.values(necessidadesAgregadas).forEach(insumo => {
+                 const disponivel = insumo.estoque;
+                 const statusOk = disponivel >= insumo.necessario;
+                 const aComprar = Math.max(0, insumo.necessario - disponivel);
+                 const custoCompra = aComprar * insumo.preco;
+
+                 const div = document.createElement('div');
+                 div.className = `p-3 rounded-md text-sm ${statusOk ? 'bg-green-900/50' : 'bg-red-900/50'} border ${statusOk ? 'border-green-500/30' : 'border-red-500/30'}`;
+                 div.innerHTML = `<div class="font-bold mb-1">${insumo.nome}</div>
+                        <div class="flex justify-between"><span>Necessário:</span> <span>${insumo.necessario.toFixed(3)} ${insumo.unidade}</span></div>
+                        <div class="flex justify-between"><span>Em Estoque:</span> <span>${disponivel.toFixed(3)} ${insumo.unidade}</span></div>
+                        <div class="font-bold mt-2 pt-2 border-t border-slate-600/50 ${statusOk ? 'text-green-400' : 'text-red-400'}">
+                            A Comprar: ${aComprar.toFixed(3)} ${insumo.unidade} (${formatCurrency(custoCompra)})
+                        </div>`;
+                container.appendChild(div);
             });
         };
         
@@ -1334,9 +1468,9 @@
                     document.getElementById('insumo-imagem-preview').src = insumo.imagem;
                     document.getElementById('insumo-nome').value = insumo.nome;
                     document.getElementById('insumo-desc').value = insumo.desc;
-                    document.getElementById('insumo-preco').value = insumo.preco;
-                    document.getElementById('insumo-estoque').value = insumo.estoque;
-                    document.getElementById('insumo-unidade').value = insumo.unidade;
+                    document.getElementById('insumo-preco-single').value = insumo.preco;
+                    document.getElementById('insumo-estoque-single').value = insumo.estoque;
+                    document.getElementById('insumo-unidade-single').value = insumo.unidade;
                 }
             }
         };
@@ -1437,8 +1571,8 @@
             const id = document.getElementById('insumo-id').value;
             const insumoData = {
                 nome: document.getElementById('insumo-nome').value, desc: document.getElementById('insumo-desc').value,
-                preco: parseFloat(document.getElementById('insumo-preco').value), estoque: parseFloat(document.getElementById('insumo-estoque').value),
-                unidade: document.getElementById('insumo-unidade').value,
+                preco: parseFloat(document.getElementById('insumo-preco-single').value), estoque: parseFloat(document.getElementById('insumo-estoque-single').value),
+                unidade: document.getElementById('insumo-unidade-single').value,
                 imagem: document.getElementById('insumo-imagem-preview').src
             };
             if (id) {
@@ -1482,7 +1616,7 @@
             const insumoId = document.getElementById('select-insumo-para-produto').value;
             const quantidade = parseFloat(document.getElementById('qtd-insumo-para-produto').value);
             if (insumoId && quantidade > 0 && !currentProdutoInsumos.some(i => i.insumoId === insumoId)) {
-                currentProdutoInsumos.push({ insumoId, quantidade });
+                currentProdutoInsumos.push({id: generateId(), insumoId, quantidade });
                 renderProdutoInsumosList(); calculateProdutoPrecoFinal();
                 document.getElementById('qtd-insumo-para-produto').value = '';
             }
@@ -1508,22 +1642,51 @@
             calculateProdutoPrecoFinal();
         });
 
-        document.getElementById('form-producao').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const produtoId = document.getElementById('select-produto-producao').value;
-            const quantidade = parseFloat(document.getElementById('qtd-produzida').value);
-            const produto = state.produtos.find(p => p.id === produtoId);
-            if(!produto || !quantidade || quantidade <= 0) { showToast('Dados de produção inválidos.', 'error'); return; }
-            const insumosFaltando = produto.insumos.map(item => ({...state.insumos.find(i => i.id === item.insumoId), necessario: item.quantidade * quantidade })).filter(insumo => !insumo.id || insumo.estoque < insumo.necessario);
-            if (insumosFaltando.length > 0) { showToast(`Estoque insuficiente para: ${insumosFaltando.map(i => i.nome).join(', ')}`, 'error'); return; }
-            produto.insumos.forEach(item => { state.insumos.find(i => i.id === item.insumoId).estoque -= item.quantidade * quantidade; });
-            state.producao.push({ id: generateId(), produtoId: produtoId, quantidade: quantidade, data: new Date().toISOString(), custoTotal: getCustoTotalUnitario(produto) * quantidade });
-            e.target.reset(); saveAndRerender(); showToast('Produção registrada!', 'success');
+        document.getElementById('btn-add-produto-producao').addEventListener('click', () => {
+            const produtoId = document.getElementById('select-produto-para-adicionar').value;
+            const quantidade = parseFloat(document.getElementById('qtd-produto-para-adicionar').value);
+
+            if (produtoId && quantidade > 0) {
+                const existing = currentProducaoItems.find(p => p.produtoId === produtoId);
+                if (existing) {
+                    existing.quantidade += quantidade;
+                } else {
+                    currentProducaoItems.push({ produtoId, quantidade });
+                }
+                renderProducaoItemsList();
+                updateProducaoNecessidades();
+                document.getElementById('qtd-produto-para-adicionar').value = '';
+            } else {
+                showToast('Selecione um produto e a quantidade.', 'error');
+            }
+        });
+
+        document.getElementById('btn-registrar-producao').addEventListener('click', () => {
+             if (currentProducaoItems.length === 0) {
+                showToast('Adicione produtos ao lote para registrar.', 'error');
+                return;
+             }
+             
+            const custoTotalDoLote = currentProducaoItems.reduce((total, item) => {
+                const produto = state.produtos.find(p => p.id === item.produtoId);
+                return total + (getCustoTotalUnitario(produto) * item.quantidade);
+            }, 0);
+
+             state.producao.push({ 
+                id: generateId(), 
+                data: new Date().toISOString(),
+                produtos: currentProducaoItems,
+                custoTotal: custoTotalDoLote
+             });
+             
+             // Reset
+             currentProducaoItems = [];
+             renderProducaoItemsList();
+             updateProducaoNecessidades();
+             saveAndRerender();
+             showToast('Produção registrada com sucesso!', 'success');
         });
         
-        document.getElementById('select-produto-producao').addEventListener('input', updateProducaoNecessidades);
-        document.getElementById('qtd-produzida').addEventListener('input', updateProducaoNecessidades);
-
         document.getElementById('form-perfil').addEventListener('submit', (e) => {
             e.preventDefault();
             state.perfil.nomeEmpresa = document.getElementById('perfil-empresa-nome').value;
@@ -1537,34 +1700,125 @@
         const setupCalculatorModal = (title) => {
             document.getElementById('calculadora-titulo').textContent = title;
             document.getElementById('modal-calculadora-fechar').onclick = () => hideModal('modal-calculadora');
-            const calcInputs = ['calc-custo-total', 'calc-qtd-total', 'calc-rendimento'];
+            const calcInputs = ['calc-custo-total', 'calc-rendimento', 'calc-nome-item'];
             calcInputs.forEach(id => {
                 const input = document.getElementById(id);
-                input.value = ''; // Clear previous values
-                input.oninput = () => {
-                    const custo = parseFloat(document.getElementById('calc-custo-total').value) || 0;
-                    const qtd = parseFloat(document.getElementById('calc-qtd-total').value) || 0;
-                    const rendimento = parseFloat(document.getElementById('calc-rendimento').value) || 0;
-                    if (rendimento > 0) {
-                        document.getElementById('calc-resultado-custo-un').textContent = formatCurrency(custo / rendimento);
-                        document.getElementById('calc-resultado-qtd-un').textContent = `${(qtd / rendimento).toFixed(4)}`;
-                    } else {
-                         document.getElementById('calc-resultado-custo-un').textContent = formatCurrency(0);
-                         document.getElementById('calc-resultado-qtd-un').textContent = `0`;
+                if (input) {
+                    input.value = ''; // Clear previous values
+                    if (id !== 'calc-nome-item') {
+                        input.oninput = () => {
+                            const custo = parseFloat(document.getElementById('calc-custo-total').value) || 0;
+                            const rendimento = parseFloat(document.getElementById('calc-rendimento').value) || 0;
+                            const resultadoEl = document.getElementById('calc-resultado-custo-un');
+                            if (resultadoEl) {
+                                if (rendimento > 0) {
+                                    resultadoEl.textContent = formatCurrency(custo / rendimento);
+                                } else {
+                                     resultadoEl.textContent = formatCurrency(0);
+                                }
+                            }
+                        }
                     }
                 }
             });
+
+            document.getElementById('modal-calculadora-adicionar').onclick = () => {
+                const nome = document.getElementById('calc-nome-item').value;
+                const custoTotal = parseFloat(document.getElementById('calc-custo-total').value) || 0;
+                const rendimento = parseFloat(document.getElementById('calc-rendimento').value) || 0;
+                
+                if(nome && custoTotal > 0 && rendimento > 0) {
+                    const custoUnitario = custoTotal / rendimento;
+                    currentProdutoInsumos.push({ id: generateId(), insumoId: null, nome: nome, quantidade: 1, preco: custoUnitario });
+                    renderProdutoInsumosList();
+                    calculateProdutoPrecoFinal();
+                    hideModal('modal-calculadora');
+                    showToast('Custo diluído adicionado!', 'success');
+                } else {
+                    showToast('Preencha todos os campos da calculadora.', 'error');
+                }
+            };
+
             showModal('modal-calculadora');
         }
+        document.getElementById('btn-abrir-calculadora-diluicao').onclick = () => setupCalculatorModal('Calculadora de Custo Diluído');
         document.getElementById('custo-venda-calculadora').onclick = () => setupCalculatorModal('Calculadora de Custo por Venda');
         
+        // PDF Generation Logic
+        document.getElementById('gerar-ordem-compra-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            
+            if (currentProducaoItems.length === 0) {
+                showToast('Adicione produtos ao lote para gerar o relatório.', 'error');
+                return;
+            }
+
+            const necessidadesAgregadas = currentProducaoItems.reduce((acc, item) => {
+                const produto = state.produtos.find(p => p.id === item.produtoId);
+                if (produto && produto.insumos) {
+                    produto.insumos.forEach(insumoProd => {
+                        const insumoData = state.insumos.find(i => i.id === insumoProd.insumoId);
+                        if(insumoData) {
+                            const necessario = insumoProd.quantidade * item.quantidade;
+                            if (acc[insumoData.id]) {
+                                acc[insumoData.id].necessario += necessario;
+                            } else {
+                                acc[insumoData.id] = { ...insumoData, necessario };
+                            }
+                        }
+                    });
+                }
+                return acc;
+            }, {});
+
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.text(`Ordem de Compra para Lote de Produção`, 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+            
+            const tableData = Object.values(necessidadesAgregadas).map(insumo => {
+                const aComprar = Math.max(0, insumo.necessario - insumo.estoque);
+                const custoCompra = aComprar * insumo.preco;
+                return [
+                    insumo.nome,
+                    `${insumo.necessario.toFixed(3)} ${insumo.unidade}`,
+                    `${aComprar.toFixed(3)} ${insumo.unidade}`,
+                    formatCurrency(custoCompra)
+                ];
+            }).filter(row => parseFloat(row[2]) > 0); // Only show items to buy
+
+             if (tableData.length === 0) {
+                showToast('Não há insumos a serem comprados para este lote.', 'info');
+                return;
+            }
+
+            const custoTotalCompra = tableData.reduce((acc, row) => acc + parseFloat(row[3].replace('R$', '').replace(/\./g, '').replace(',', '.')), 0);
+
+            doc.autoTable({
+                head: [['Insumo', 'Necessário', 'A Comprar', 'Custo da Compra']],
+                body: tableData,
+                startY: 38,
+                theme: 'grid',
+                headStyles: { fillColor: [59, 130, 246] }
+            });
+
+            let finalY = doc.lastAutoTable.finalY || 50;
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Custo Total para Compra: ${formatCurrency(custoTotalCompra)}`, 14, finalY + 15);
+
+            doc.save(`ordem_de_compra_${new Date().toISOString().slice(0,10)}.pdf`);
+        });
+
         const populateInsumoSelects = () => {
             const select = document.getElementById('select-insumo-para-produto');
             select.innerHTML = '<option value="">Selecione um insumo...</option>';
             state.insumos.forEach(insumo => select.innerHTML += `<option value="${insumo.id}">${insumo.nome} (${insumo.unidade})</option>`);
         };
         const populateProdutoSelects = () => {
-             const select = document.getElementById('select-produto-producao');
+             const select = document.getElementById('select-produto-para-adicionar');
              select.innerHTML = '<option value="">Selecione um produto...</option>';
              state.produtos.forEach(produto => select.innerHTML += `<option value="${produto.id}">${produto.nome}</option>`);
         };
