@@ -730,11 +730,17 @@
                 quantidadeEstimadaVendas: 200,
             },
             insumos: [
-                { id: 'insumo1', nome: 'Cola de Contato (Lata)', desc: 'Lata de 750g para colagem de solados', preco: 45.50, estoque: 5, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/3b82f6?text=Cola' },
-                { id: 'insumo2', nome: 'Couro Sintético Preto', desc: 'Rolo de couro sintético para cabedal', preco: 80, estoque: 10, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/3b82f6?text=Couro' },
-                { id: 'insumo3', nome: 'Linha de Nylon #40', desc: 'Cone de linha de alta resistência', preco: 15, estoque: 20, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/3b82f6?text=Linha' },
-                { id: 'insumo4', nome: 'Solado de Borracha TR', desc: 'Placa de borracha para solados', preco: 120, estoque: 8, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/3b82f6?text=Solado' },
-                { id: 'insumo5', nome: 'Tinta para Bordas (Preta)', desc: 'Frasco de 100ml de tinta para acabamento', preco: 25, estoque: 12, unidade: 'mL', imagem: 'https://placehold.co/400x400/0f172a/3b82f6?text=Tinta' }
+                { id: 'insumo1', nome: 'Solado Tradicional', desc: 'Solado para calçados do dia a dia.', preco: 7.50, estoque: 100, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Solado' },
+                { id: 'insumo2', nome: 'Kit Solado Luxo', desc: 'Kit completo de solado de alta qualidade.', preco: 12.90, estoque: 50, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Solado+Luxo' },
+                { id: 'insumo3', nome: 'Roletê Grosso', desc: 'Roletê de material resistente para alças.', preco: 1.20, estoque: 200, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Roletê' },
+                { id: 'insumo4', nome: 'Roletê Fino', desc: 'Roletê de material fino para detalhes.', preco: 0.95, estoque: 300, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Roletê' },
+                { id: 'insumo5', nome: 'Roletê Macarrão', desc: 'Roletê com formato de macarrão.', preco: 2.00, estoque: 150, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Roletê' },
+                { id: 'insumo6', nome: 'Passante Fino', desc: 'Passante delicado para acabamentos.', preco: 0.50, estoque: 500, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Passante' },
+                { id: 'insumo7', nome: 'Passante Grosso', desc: 'Passante resistente para estruturas.', preco: 0.60, estoque: 400, unidade: 'un', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Passante' },
+                { id: 'insumo8', nome: 'Cola PVC', desc: 'Cola para PVC, preço por grama.', preco: 0.032, estoque: 2300, unidade: 'g', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Cola' },
+                { id: 'insumo9', nome: 'Strass Fino', desc: 'Metro de strass fino para decoração.', preco: 3.50, estoque: 50, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Strass' },
+                { id: 'insumo10', nome: 'Strass Grosso', desc: 'Metro de strass robusto para destaque.', preco: 5.50, estoque: 50, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Strass' },
+                { id: 'insumo11', nome: 'Mangueirinha', desc: 'Metro de mangueirinha para detalhes.', preco: 4.00, estoque: 100, unidade: 'm', imagem: 'https://placehold.co/400x400/0f172a/e2e8f0?text=Mangueira' }
             ], 
             produtos: [],
             producao: [] 
@@ -1021,7 +1027,6 @@
             document.getElementById('mao-pecas-hora').value = state.custos.maoDeObra.pecasHora || '';
 
             // Renderiza resumos
-            document.getElementById('custo-total-mensal').textContent = formatCurrency(getCustoTotalMensal());
             document.getElementById('resumo-custo-fixo').textContent = formatCurrency(getCustoFixoUnitario());
             document.getElementById('resumo-mao-de-obra').textContent = formatCurrency(getCustoMaoDeObraUnitario());
             document.getElementById('resumo-custo-venda').textContent = formatCurrency(getCustoPorVendaTotal());
